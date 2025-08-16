@@ -361,43 +361,27 @@
     </div>
 
     <script>
-        // Datos de ejemplo para demostración
+        // Reemplaza toda la sección <script> con este código corregido
+
+        // Datos de ejemplo usando tu estructura CSV
         const sampleProducts = [
             {
-                nombre: "Mate Imperial de Calabaza",
-                descripcion: "Mate tradicional de calabaza curada con virola de alpaca grabada a mano. Incluye base de madera de quebracho.",
-                precio: "$18000",
-                imagen: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&h=300&fit=crop"
+                cod: "M001",
+                descripcion: "Mate Imperial de Calabaza",
+                categoria: "Mates", 
+                tipoprod: "Imperial",
+                precio: "18000",
+                stock: "5",
+                foto: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&h=300&fit=crop"
             },
             {
-                nombre: "Bombilla de Acero Premium",
-                descripcion: "Bombilla de acero inoxidable 316L con filtro de malla fina. Resistente al desgaste y fácil limpieza.",
-                precio: "$12000",
-                imagen: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop"
-            },
-            {
-                nombre: "Mate de Madera Algarrobo",
-                descripcion: "Mate artesanal tallado en madera de algarrobo. Diseño único con acabado natural y virola de bronce.",
-                precio: "$25000",
-                imagen: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=400&h=300&fit=crop"
-            },
-            {
-                nombre: "Set Matero Completo",
-                descripcion: "Kit completo con mate de calabaza, bombilla de acero, yerbera de cuero y termo Stanley de 1L.",
-                precio: "$45000",
-                imagen: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop"
-            },
-            {
-                nombre: "Bombilla con Pico de Oro",
-                descripcion: "Bombilla artesanal con baño de oro 18k. Filtro ultrafino y diseño ergonómico exclusivo.",
-                precio: "$35000",
-                imagen: "https://images.unsplash.com/photo-1586985129123-b674b147ad2b?w=400&h=300&fit=crop"
-            },
-            {
-                nombre: "Mate Camionero XXL",
-                descripcion: "Mate de gran capacidad ideal para compartir. Calabaza extra grande con virola reforzada.",
-                precio: "$28000",
-                imagen: "https://images.unsplash.com/photo-1574736797873-d3505eb04d4d?w=400&h=300&fit=crop"
+                cod: "B001",
+                descripcion: "Bombilla de Acero Premium",
+                categoria: "Bombillas",
+                tipoprod: "Premium", 
+                precio: "12000",
+                stock: "15",
+                foto: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop"
             }
         ];
 
@@ -424,17 +408,23 @@
             const card = document.createElement('div');
             card.className = 'product-card';
             
-            const imageHtml = product.imagen ? 
-                `<img src="${product.imagen}" alt="${product.nombre}" onerror="this.parentElement.innerHTML='<div class=\\'placeholder\\'>🧉</div>'">` :
+            // Usar tu estructura: cod, descripcion, precio, foto, etc.
+            const nombre = product.descripcion || 'Producto sin nombre';
+            const precio = product.precio ? `$${product.precio}` : 'Precio a consultar';
+            const imagen = product.foto; // ¡TU COLUMNA SE LLAMA 'FOTO'!
+            const codigo = product.cod || '';
+            
+            const imageHtml = imagen ? 
+                `<img src="${imagen}" alt="${nombre}" onerror="this.parentElement.innerHTML='<div class=\\'placeholder\\'>🧉</div>'">` :
                 `<div class="placeholder">🧉</div>`;
 
             card.innerHTML = `
                 <div class="product-image">
                     ${imageHtml}
                 </div>
-                <div class="product-name">${product.nombre || 'Sin nombre'}</div>
-                <div class="product-description">${product.descripcion || 'Sin descripción'}</div>
-                <div class="product-price">${product.precio || 'Precio a consultar'}</div>
+                ${codigo ? `<div style="font-size: 0.9rem; color: #888; margin-bottom: 10px;">Código: ${codigo}</div>` : ''}
+                <div class="product-name">${nombre}</div>
+                <div class="product-price">${precio}</div>
             `;
             
             return card;
@@ -456,10 +446,16 @@
         }
 
         function parseCSVData(csvText) {
+            console.log('📥 CSV recibido:', csvText); // DEBUG
+            
             const lines = csvText.trim().split('\n');
+            console.log('📊 Líneas encontradas:', lines.length);
+            
             if (lines.length < 2) return [];
 
             const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            console.log('📋 Headers encontrados:', headers);
+            
             const products = [];
 
             for (let i = 1; i < lines.length; i++) {
@@ -470,11 +466,15 @@
                     product[header] = values[index] ? values[index].trim().replace(/"/g, '') : '';
                 });
                 
-                if (product.nombre) {
+                console.log('🏷️ Producto procesado:', product);
+                
+                // CAMBIO IMPORTANTE: Buscar 'cod' o 'descripcion' en lugar de 'nombre'
+                if (product.cod || product.descripcion) {
                     products.push(product);
                 }
             }
 
+            console.log(`✅ Total productos válidos: ${products.length}`);
             return products;
         }
 
@@ -550,9 +550,8 @@
             }
         });
 
-        // Cargar datos de ejemplo al inicio
+        // Cargar tu Sheet automáticamente al cargar la página
         window.addEventListener('load', function() {
-            // Cargar tu Sheet automáticamente
             document.getElementById('dataUrl').value = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIAvB2HpBwCp00P3IzhXTulyLsl2FAKlGFJh74b3RHg48LEhauspm_GO_zbGv_6CjvZ6zZMnsdB37B/pub?gid=0&single=true&output=csv';
             document.getElementById('dataType').value = 'sheets';
             loadProducts();
