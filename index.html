@@ -552,7 +552,10 @@
 
         // Cargar datos de ejemplo al inicio
         window.addEventListener('load', function() {
-            loadSampleData();
+            // Cargar tu Sheet automáticamente
+            document.getElementById('dataUrl').value = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIAvB2HpBwCp00P3IzhXTulyLsl2FAKlGFJh74b3RHg48LEhauspm_GO_zbGv_6CjvZ6zZMnsdB37B/pub?gid=0&single=true&output=csv';
+            document.getElementById('dataType').value = 'sheets';
+            loadProducts();
         });
     </script>
 </body>
