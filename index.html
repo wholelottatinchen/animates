@@ -61,6 +61,65 @@
             opacity: 0.9;
         }
 
+        /* Filtros de categoría */
+        .category-filters {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .category-filter {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-filter:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .category-filter.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            border-color: white;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .category-filter .count {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            margin-left: 8px;
+        }
+
+        .category-filter.active .count {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Contador de productos */
+        .products-counter {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -72,13 +131,17 @@
             border-radius: 20px;
             padding: 25px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: transform 0.3s, box-shadow 0.3s, opacity 0.3s;
             overflow: hidden;
         }
 
         .product-card:hover {
             transform: translateY(-8px);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .product-card.hidden {
+            display: none;
         }
 
         .product-image {
@@ -193,6 +256,14 @@
             font-size: 1.2rem;
         }
 
+        .no-products {
+            text-align: center;
+            color: white;
+            padding: 60px 20px;
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
@@ -205,6 +276,15 @@
             .container {
                 padding: 10px;
             }
+
+            .category-filters {
+                gap: 10px;
+            }
+
+            .category-filter {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
@@ -216,6 +296,12 @@
             <p>Descubrí nuestra colección de mates, bombillas y accesorios</p>
         </div>
 
+        <!-- Filtros de categoría -->
+        <div id="categoryFilters" class="category-filters"></div>
+
+        <!-- Contador de productos -->
+        <div id="productsCounter" class="products-counter"></div>
+
         <div id="loadingMessage" class="loading" style="display: none;">
             Cargando productos... 🔄
         </div>
@@ -224,6 +310,9 @@
     </div>
 
     <script>
+        let allProducts = [];
+        let currentCategory = 'todas';
+
         function showLoading() {
             document.getElementById('loadingMessage').style.display = 'block';
             document.getElementById('productsContainer').innerHTML = '';
@@ -233,11 +322,79 @@
             document.getElementById('loadingMessage').style.display = 'none';
         }
 
+        function getCategoryEmoji(category) {
+            const emojis = {
+                'mates': '🧉',
+                'bombillas': '🥄',
+                'accesorios': '🎯',
+                'todas': '📦'
+            };
+            return emojis[category.toLowerCase()] || '📦';
+        }
+
+        function createCategoryFilters(products) {
+            const categories = {};
+            
+            // Contar productos por categoría
+            products.forEach(product => {
+                const category = (product.categoria || 'sin categoría').toLowerCase();
+                categories[category] = (categories[category] || 0) + 1;
+            });
+
+            const filtersContainer = document.getElementById('categoryFilters');
+            filtersContainer.innerHTML = '';
+
+            // Botón "Todas"
+            const totalCount = products.length;
+            const allButton = document.createElement('button');
+            allButton.className = 'category-filter active';
+            allButton.innerHTML = `${getCategoryEmoji('todas')} Todas <span class="count">${totalCount}</span>`;
+            allButton.onclick = () => filterByCategory('todas');
+            filtersContainer.appendChild(allButton);
+
+            // Botones por categoría
+            Object.entries(categories).forEach(([category, count]) => {
+                const button = document.createElement('button');
+                button.className = 'category-filter';
+                button.innerHTML = `${getCategoryEmoji(category)} ${category.charAt(0).toUpperCase() + category.slice(1)} <span class="count">${count}</span>`;
+                button.onclick = () => filterByCategory(category);
+                filtersContainer.appendChild(button);
+            });
+        }
+
+        function filterByCategory(category) {
+            currentCategory = category;
+            
+            // Actualizar botones activos
+            document.querySelectorAll('.category-filter').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Filtrar productos
+            const filteredProducts = category === 'todas' 
+                ? allProducts 
+                : allProducts.filter(product => 
+                    (product.categoria || 'sin categoría').toLowerCase() === category
+                );
+
+            displayProducts(filteredProducts);
+            updateProductsCounter(filteredProducts.length, allProducts.length);
+        }
+
+        function updateProductsCounter(current, total) {
+            const counter = document.getElementById('productsCounter');
+            if (currentCategory === 'todas') {
+                counter.textContent = `Mostrando ${total} productos`;
+            } else {
+                counter.textContent = `Mostrando ${current} productos de ${currentCategory}`;
+            }
+        }
+
         function createProductCard(product) {
             const card = document.createElement('div');
             card.className = 'product-card';
             
-            // Usar tu estructura: cod, descripcion, precio, foto, categoria, tipoprod, stock
             const nombre = product.descripcion || 'Producto sin nombre';
             const precio = product.precio ? `$${product.precio}` : 'Precio a consultar';
             const imagen = product.foto;
@@ -250,7 +407,6 @@
                 `<img src="${imagen}" alt="${nombre}" onerror="this.parentElement.innerHTML='<div class=\\'placeholder\\'>🧉</div>'">` :
                 `<div class="placeholder">🧉</div>`;
 
-            // Crear badges de categoría y tipo
             const badges = [];
             if (categoria) badges.push(`<span class="badge badge-category">${categoria}</span>`);
             if (tipoprod) badges.push(`<span class="badge badge-type">${tipoprod}</span>`);
@@ -280,7 +436,7 @@
             container.innerHTML = '';
             
             if (!products || products.length === 0) {
-                container.innerHTML = '<div style="text-align: center; color: white; padding: 40px;">No se encontraron productos para mostrar.</div>';
+                container.innerHTML = '<div class="no-products">No se encontraron productos en esta categoría 🤔</div>';
                 return;
             }
 
@@ -313,7 +469,6 @@
                 
                 console.log('🏷️ Producto procesado:', product);
                 
-                // Buscar cod o descripcion para validar que es un producto válido
                 if (product.cod || product.descripcion) {
                     products.push(product);
                 }
@@ -338,20 +493,21 @@
             }
         }
 
-        // Cargar automáticamente los productos al cargar la página
         window.addEventListener('load', async function() {
             showLoading();
             
             const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIAvB2HpBwCp00P3IzhXTulyLsl2FAKlGFJh74b3RHg48LEhauspm_GO_zbGv_6CjvZ6zZMnsdB37B/pub?gid=0&single=true&output=csv';
             
-            const products = await loadFromURL(csvUrl);
+            allProducts = await loadFromURL(csvUrl);
             
             hideLoading();
-            displayProducts(products);
             
-            // Si no hay productos del CSV, mostrar mensaje
-            if (products.length === 0) {
-                console.log('⚠️ No se pudieron cargar productos del CSV. Verifica la URL y que el Sheet esté público.');
+            if (allProducts.length > 0) {
+                createCategoryFilters(allProducts);
+                displayProducts(allProducts);
+                updateProductsCounter(allProducts.length, allProducts.length);
+            } else {
+                document.getElementById('productsContainer').innerHTML = '<div class="no-products">No se pudieron cargar productos. Verifica la conexión y la configuración del Google Sheet.</div>';
             }
         });
     </script>
