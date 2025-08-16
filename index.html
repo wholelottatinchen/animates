@@ -472,7 +472,7 @@
                 // Buscar cod o descripcion para validar que es un producto válido
                 // Y verificar que la columna "mostrar" sea 1 para mostrar el producto
                 const mostrar = product.mostrar || '';
-                if ((product.cod || product.descripcion) && mostrar === '1') {
+                if ((product.cod || product.descripcion) && mostrar == '1') {
                     products.push(product);
                 }
             }
