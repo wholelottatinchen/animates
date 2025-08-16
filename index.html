@@ -61,82 +61,10 @@
             opacity: 0.9;
         }
 
-        .header h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-
-        .data-source {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .data-source h3 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 600;
-        }
-
-        .input-group input, .input-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .input-group input:focus, .input-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin: 10px 5px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: linear-gradient(135deg, #f093fb, #f5576c);
-        }
-
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 25px;
-            margin-top: 30px;
         }
 
         .product-card {
@@ -163,7 +91,6 @@
             justify-content: center;
             margin-bottom: 20px;
             overflow: hidden;
-            position: relative;
         }
 
         .product-image img {
@@ -178,6 +105,13 @@
             color: #999;
         }
 
+        .product-code {
+            font-size: 0.9rem;
+            color: #888;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
         .product-name {
             font-size: 1.3rem;
             font-weight: 700;
@@ -185,10 +119,44 @@
             margin-bottom: 10px;
         }
 
+        .product-badges {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-category {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .badge-type {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+
         .product-description {
             color: #666;
             line-height: 1.5;
             margin-bottom: 15px;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
         }
 
         .product-price {
@@ -201,74 +169,28 @@
             background-clip: text;
         }
 
+        .stock {
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+
+        .stock.available {
+            background: rgba(76, 175, 80, 0.1);
+            color: #388e3c;
+        }
+
+        .stock.unavailable {
+            background: rgba(244, 67, 54, 0.1);
+            color: #d32f2f;
+        }
+
         .loading {
             text-align: center;
             padding: 40px;
             color: white;
             font-size: 1.2rem;
-        }
-
-        .error {
-            background: rgba(244, 67, 54, 0.1);
-            color: #d32f2f;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 4px solid #d32f2f;
-        }
-
-        .success {
-            background: rgba(76, 175, 80, 0.1);
-            color: #388e3c;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 4px solid #388e3c;
-        }
-
-        .instructions {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .instructions h3 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .instructions ul {
-            color: #666;
-            line-height: 1.6;
-            margin-left: 20px;
-        }
-
-        .instructions li {
-            margin-bottom: 8px;
-        }
-
-        .sample-data {
-            margin-top: 20px;
-        }
-
-        .sample-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        .sample-table th,
-        .sample-table td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-
-        .sample-table th {
-            background: #f5f5f5;
-            font-weight: 600;
         }
 
         @media (max-width: 768px) {
@@ -288,69 +210,10 @@
 </head>
 <body>
     <div class="container">
-        
         <div class="header">
             <img src="./mate-header.png" alt="Mate Argentino" class="header-image">
             <h1>🧉 AniMates</h1>
             <p>Descubrí nuestra colección de mates, bombillas y accesorios</p>
-        </div>
-
-        <div class="instructions">
-            <h3>📋 Instrucciones para configurar tu catálogo</h3>
-            <ul>
-                <li><strong>Google Sheets:</strong> Crea una hoja pública con columnas: nombre, descripcion, precio, imagen</li>
-                <li><strong>CSV:</strong> Prepara un archivo con la misma estructura</li>
-                <li><strong>JSON:</strong> Usa el formato de ejemplo mostrado abajo</li>
-            </ul>
-            
-            <div class="sample-data">
-                <h4>Ejemplo de estructura de datos:</h4>
-                <table class="sample-table">
-                    <thead>
-                        <tr>
-                            <th>nombre</th>
-                            <th>descripcion</th>
-                            <th>precio</th>
-                            <th>imagen</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Mate Tradicional</td>
-                            <td>Mate de calabaza natural con virola de alpaca</td>
-                            <td>$15000</td>
-                            <td>https://ejemplo.com/mate1.jpg</td>
-                        </tr>
-                        <tr>
-                            <td>Bombilla Premium</td>
-                            <td>Bombilla de acero inoxidable con filtro mejorado</td>
-                            <td>$8000</td>
-                            <td>https://ejemplo.com/bombilla1.jpg</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="data-source">
-            <h3>🔗 Cargar productos desde fuente de datos</h3>
-            
-            <div class="input-group">
-                <label for="dataType">Tipo de fuente de datos:</label>
-                <select id="dataType">
-                    <option value="sheets">Google Sheets (CSV público)</option>
-                    <option value="json">JSON URL</option>
-                    <option value="manual">Datos manuales (ejemplo)</option>
-                </select>
-            </div>
-
-            <div class="input-group" id="urlInput">
-                <label for="dataUrl">URL de los datos:</label>
-                <input type="url" id="dataUrl" placeholder="https://docs.google.com/spreadsheets/d/e/2PACX-1vTIAvB2HpBwCp00P3IzhXTulyLsl2FAKlGFJh74b3RHg48LEhauspm_GO_zbGv_6CjvZ6zZMnsdB37B/pub?gid=0&single=true&output=csv">
-            </div>
-
-            <button class="btn" onclick="loadProducts()">Cargar Productos</button>
-            <button class="btn btn-secondary" onclick="loadSampleData()">Ver Datos de Ejemplo</button>
         </div>
 
         <div id="loadingMessage" class="loading" style="display: none;">
@@ -361,30 +224,6 @@
     </div>
 
     <script>
-        // Reemplaza toda la sección <script> con este código corregido
-
-        // Datos de ejemplo usando tu estructura CSV
-        const sampleProducts = [
-            {
-                cod: "M001",
-                descripcion: "Mate Imperial de Calabaza",
-                categoria: "Mates", 
-                tipoprod: "Imperial",
-                precio: "18000",
-                stock: "5",
-                foto: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&h=300&fit=crop"
-            },
-            {
-                cod: "B001",
-                descripcion: "Bombilla de Acero Premium",
-                categoria: "Bombillas",
-                tipoprod: "Premium", 
-                precio: "12000",
-                stock: "15",
-                foto: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop"
-            }
-        ];
-
         function showLoading() {
             document.getElementById('loadingMessage').style.display = 'block';
             document.getElementById('productsContainer').innerHTML = '';
@@ -394,37 +233,43 @@
             document.getElementById('loadingMessage').style.display = 'none';
         }
 
-        function showError(message) {
-            const container = document.getElementById('productsContainer');
-            container.innerHTML = `<div class="error">❌ Error: ${message}</div>`;
-        }
-
-        function showSuccess(message) {
-            const container = document.getElementById('productsContainer');
-            container.innerHTML = `<div class="success">✅ ${message}</div>` + container.innerHTML;
-        }
-
         function createProductCard(product) {
             const card = document.createElement('div');
             card.className = 'product-card';
             
-            // Usar tu estructura: cod, descripcion, precio, foto, etc.
+            // Usar tu estructura: cod, descripcion, precio, foto, categoria, tipoprod, stock
             const nombre = product.descripcion || 'Producto sin nombre';
             const precio = product.precio ? `$${product.precio}` : 'Precio a consultar';
-            const imagen = product.foto; // ¡TU COLUMNA SE LLAMA 'FOTO'!
+            const imagen = product.foto;
             const codigo = product.cod || '';
+            const categoria = product.categoria || '';
+            const tipoprod = product.tipoprod || '';
+            const stock = product.stock || '';
             
             const imageHtml = imagen ? 
                 `<img src="${imagen}" alt="${nombre}" onerror="this.parentElement.innerHTML='<div class=\\'placeholder\\'>🧉</div>'">` :
                 `<div class="placeholder">🧉</div>`;
 
+            // Crear badges de categoría y tipo
+            const badges = [];
+            if (categoria) badges.push(`<span class="badge badge-category">${categoria}</span>`);
+            if (tipoprod) badges.push(`<span class="badge badge-type">${tipoprod}</span>`);
+            
+            const stockStatus = stock && parseInt(stock) > 0 ? 
+                `<span class="stock available">📦 Stock: ${stock}</span>` : 
+                stock === '0' ? `<span class="stock unavailable">❌ Sin stock</span>` : '';
+
             card.innerHTML = `
                 <div class="product-image">
                     ${imageHtml}
                 </div>
-                ${codigo ? `<div style="font-size: 0.9rem; color: #888; margin-bottom: 10px;">Código: ${codigo}</div>` : ''}
+                ${codigo ? `<div class="product-code">Código: ${codigo}</div>` : ''}
                 <div class="product-name">${nombre}</div>
-                <div class="product-price">${precio}</div>
+                ${badges.length > 0 ? `<div class="product-badges">${badges.join('')}</div>` : ''}
+                <div class="product-footer">
+                    <div class="product-price">${precio}</div>
+                    ${stockStatus}
+                </div>
             `;
             
             return card;
@@ -435,7 +280,7 @@
             container.innerHTML = '';
             
             if (!products || products.length === 0) {
-                showError('No se encontraron productos para mostrar.');
+                container.innerHTML = '<div style="text-align: center; color: white; padding: 40px;">No se encontraron productos para mostrar.</div>';
                 return;
             }
 
@@ -446,7 +291,7 @@
         }
 
         function parseCSVData(csvText) {
-            console.log('📥 CSV recibido:', csvText); // DEBUG
+            console.log('📥 CSV recibido:', csvText);
             
             const lines = csvText.trim().split('\n');
             console.log('📊 Líneas encontradas:', lines.length);
@@ -468,7 +313,7 @@
                 
                 console.log('🏷️ Producto procesado:', product);
                 
-                // CAMBIO IMPORTANTE: Buscar 'cod' o 'descripcion' en lugar de 'nombre'
+                // Buscar cod o descripcion para validar que es un producto válido
                 if (product.cod || product.descripcion) {
                     products.push(product);
                 }
@@ -485,76 +330,29 @@
                     throw new Error(`Error HTTP: ${response.status}`);
                 }
                 
-                const contentType = response.headers.get('content-type');
-                let products = [];
-
-                if (contentType && contentType.includes('application/json')) {
-                    const data = await response.json();
-                    products = Array.isArray(data) ? data : [data];
-                } else {
-                    const csvText = await response.text();
-                    products = parseCSVData(csvText);
-                }
-
-                return products;
+                const csvText = await response.text();
+                return parseCSVData(csvText);
             } catch (error) {
-                throw new Error(`No se pudo cargar desde la URL: ${error.message}`);
+                console.error('Error cargando datos:', error);
+                return [];
             }
         }
 
-        async function loadProducts() {
+        // Cargar automáticamente los productos al cargar la página
+        window.addEventListener('load', async function() {
             showLoading();
-
-            const dataType = document.getElementById('dataType').value;
-            const dataUrl = document.getElementById('dataUrl').value;
-
-            try {
-                let products = [];
-
-                if (dataType === 'manual') {
-                    products = sampleProducts;
-                } else if (dataUrl) {
-                    products = await loadFromURL(dataUrl);
-                } else {
-                    throw new Error('Por favor, ingresa una URL válida.');
-                }
-
-                hideLoading();
-                displayProducts(products);
-                
-                if (products.length > 0) {
-                    showSuccess(`Se cargaron ${products.length} productos correctamente.`);
-                }
-            } catch (error) {
-                hideLoading();
-                showError(error.message);
+            
+            const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIAvB2HpBwCp00P3IzhXTulyLsl2FAKlGFJh74b3RHg48LEhauspm_GO_zbGv_6CjvZ6zZMnsdB37B/pub?gid=0&single=true&output=csv';
+            
+            const products = await loadFromURL(csvUrl);
+            
+            hideLoading();
+            displayProducts(products);
+            
+            // Si no hay productos del CSV, mostrar mensaje
+            if (products.length === 0) {
+                console.log('⚠️ No se pudieron cargar productos del CSV. Verifica la URL y que el Sheet esté público.');
             }
-        }
-
-        function loadSampleData() {
-            showLoading();
-            setTimeout(() => {
-                hideLoading();
-                displayProducts(sampleProducts);
-                showSuccess(`Mostrando ${sampleProducts.length} productos de ejemplo.`);
-            }, 800);
-        }
-
-        // Manejar cambio de tipo de datos
-        document.getElementById('dataType').addEventListener('change', function() {
-            const urlInput = document.getElementById('urlInput');
-            if (this.value === 'manual') {
-                urlInput.style.display = 'none';
-            } else {
-                urlInput.style.display = 'block';
-            }
-        });
-
-        // Cargar tu Sheet automáticamente al cargar la página
-        window.addEventListener('load', function() {
-            document.getElementById('dataUrl').value = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIAvB2HpBwCp00P3IzhXTulyLsl2FAKlGFJh74b3RHg48LEhauspm_GO_zbGv_6CjvZ6zZMnsdB37B/pub?gid=0&single=true&output=csv';
-            document.getElementById('dataType').value = 'sheets';
-            loadProducts();
         });
     </script>
 </body>
