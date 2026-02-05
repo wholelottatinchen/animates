@@ -440,7 +440,7 @@
                     COD: cod,
                     DESCRIPCION: descripcion,
                     TIPO: tipo,
-                    'PRECIO VTA': precio,
+                    PRECIOVTA: precio,
                     STK: stock
                 };
                 
@@ -520,9 +520,9 @@
                     case 'nombre':
                         return a.DESCRIPCION.localeCompare(b.DESCRIPCION);
                     case 'precio-asc':
-                        return a['PRECIO VTA'] - b['PRECIO VTA'];
+                        return a['PRECIOVTA'] - b['PRECIOVTA'];
                     case 'precio-desc':
-                        return b['PRECIO VTA'] - a['PRECIO VTA'];
+                        return b['PRECIOVTA'] - a['PRECIOVTA'];
                     case 'codigo':
                         return String(a.COD).localeCompare(String(b.COD));
                     default:
@@ -558,7 +558,7 @@
                         <div class="product-code">COD: ${displayCode}</div>
                         <div class="product-name">${product.DESCRIPCION}</div>
                         <div class="product-type">${product.TIPO || 'Sin categoría'}</div>
-                        <div class="product-price">$${product['PRECIO VTA'].toLocaleString('es-AR')}</div>
+                        <div class="product-price">$${product['PRECIOVTA'].toLocaleString('es-AR')}</div>
                         <div class="product-stock ${stockClass}">${stockText}</div>
                     </div>
                 `;
