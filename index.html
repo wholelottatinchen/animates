@@ -439,7 +439,16 @@
                 const cells = row.c;
                 
                 // Extraer valores de cada celda
-                const cod = cells[0]?.v || cells[0]?.f || '';
+                // Para COD: usar primero f (formatted value) que preserva el formato original
+                let cod = '';
+                if (cells[0]) {
+                    cod = cells[0].f || cells[0].v || '';
+                    // Si es un número muy grande, convertirlo a string
+                    if (typeof cod === 'number') {
+                        cod = cod.toString();
+                    }
+                }
+                
                 const descripcion = cells[1]?.v || '';
                 const tipo = cells[2]?.v || '';
                 const precio = cells[3]?.v || 0;
@@ -540,9 +549,12 @@
                                  product.STK <= 5 ? `Stock bajo: ${product.STK}` : 
                                  `Stock: ${product.STK}`;
                 
+                // Manejar código vacío o indefinido
+                const displayCode = product.COD && product.COD !== '' ? product.COD : 'S/C';
+                
                 return `
                     <div class="product-card">
-                        <div class="product-code">COD: ${product.COD}</div>
+                        <div class="product-code">COD: ${displayCode}</div>
                         <div class="product-name">${product.DESCRIPCION}</div>
                         <div class="product-type">${product.TIPO || 'Sin categoría'}</div>
                         <div class="product-price">$${product['PRECIO VTA'].toLocaleString('es-AR')}</div>
