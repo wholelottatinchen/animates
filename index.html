@@ -432,7 +432,8 @@
                 const descripcion = values[1].trim();
                 const tipo = values[2].trim();
                 //const precio = parseInt(values[3]) || 0;
-                const precio = parsePrice(values[3]);
+                //const precio = parsePrice(values[3]);
+                const precio = parseInt(String(values[3]).replace(/[^\d-]/g, ''), 10) || 0;
                 const stock = parseInt(values[4]) || 0;
                 
                 if (!descripcion) continue;
