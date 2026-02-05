@@ -141,26 +141,6 @@
             color: #667eea;
         }
 
-        .refresh-button {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 15px;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .refresh-button:hover {
-            background: #218838;
-            transform: translateY(-2px);
-        }
-
         .products-container {
             padding: 30px;
         }
@@ -253,27 +233,6 @@
             margin-bottom: 10px;
         }
 
-        .info-section {
-            background: #e7f1ff;
-            border: 2px solid #667eea;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 30px;
-        }
-
-        .info-section h3 {
-            color: #004085;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .info-section p {
-            color: #004085;
-            line-height: 1.6;
-        }
-
         .error-message {
             background: #f8d7da;
             border: 2px solid #dc3545;
@@ -306,7 +265,7 @@
     <div class="container">
         <div class="header">
             <h1>🧉 Catálogo de Productos</h1>
-            <p>Precios actualizados automáticamente desde Google Sheets</p>
+            <p>Precios actualizados</p>
         </div>
 
         <div id="loadingSection" class="loading">
@@ -345,22 +304,12 @@
                         <option value="disponible">Con stock</option>
                         <option value="sin-stock">Sin stock</option>
                     </select>
-
-                    <button class="refresh-button" onclick="loadDataFromSheet()">
-                        🔄 Actualizar
-                    </button>
                 </div>
 
                 <div class="stats">
                     <div class="stat">Total de productos: <span id="totalProducts">0</span></div>
                     <div class="stat">Mostrando: <span id="visibleProducts">0</span></div>
-                    <div class="stat">Última actualización: <span id="lastUpdate">-</span></div>
                 </div>
-            </div>
-
-            <div class="info-section">
-                <h3>ℹ️ Actualización automática</h3>
-                <p>Los precios se cargan directamente desde Google Sheets. Cada vez que modifiques el archivo en Google Drive, haz clic en "🔄 Actualizar" para ver los cambios reflejados.</p>
             </div>
 
             <div class="products-container">
@@ -376,42 +325,26 @@
     <script>
         let allProducts = [];
         let filteredProducts = [];
-        
-        // ID de tu Google Sheet
-        const SHEET_ID = '1aTysjhaifMmc69F97_8tbMEz6Tn3k50E';
-        const SHEET_NAME = 'Hoja1'; // Cambia esto si tu hoja tiene otro nombre
 
-        async function loadDataFromSheet() {
+        async function loadProducts() {
             try {
-                // Mostrar spinner
                 document.getElementById('loadingSection').style.display = 'block';
                 document.getElementById('mainContent').style.display = 'none';
                 document.getElementById('errorSection').style.display = 'none';
 
-                // URL de la API de Google Sheets usando formato JSON
-                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+                // Cargar el archivo JSON
+                const response = await fetch('productos.json');
                 
-                const response = await fetch(url);
-                const text = await response.text();
+                if (!response.ok) {
+                    throw new Error('No se pudo cargar el archivo productos.json');
+                }
                 
-                // Remover el wrapper de JSONP
-                const jsonText = text.substring(47).slice(0, -2);
-                const data = JSON.parse(jsonText);
+                allProducts = await response.json();
                 
-                // Parsear datos de Google Sheets
-                const products = parseGoogleSheetsData(data);
-                
-                if (products.length === 0) {
-                    throw new Error('No se encontraron productos en la hoja de cálculo');
+                if (allProducts.length === 0) {
+                    throw new Error('No se encontraron productos');
                 }
 
-                allProducts = products;
-                
-                // Actualizar última actualización
-                const now = new Date();
-                document.getElementById('lastUpdate').textContent = now.toLocaleString('es-AR');
-                
-                // Ocultar loading y mostrar contenido
                 document.getElementById('loadingSection').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
                 
@@ -423,59 +356,8 @@
                 document.getElementById('loadingSection').style.display = 'none';
                 document.getElementById('errorSection').style.display = 'block';
                 document.getElementById('errorMessage').textContent = 
-                    'No se pudieron cargar los datos. Asegúrate de que el archivo de Google Sheets sea público. Error: ' + error.message;
+                    'No se pudieron cargar los datos: ' + error.message;
             }
-        }
-
-        function parseGoogleSheetsData(data) {
-            const products = [];
-            const rows = data.table.rows;
-            
-            // Saltar la primera fila (encabezados)
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                if (!row.c) continue;
-                
-                const cells = row.c;
-                
-                // Extraer valores de cada celda
-                // Para COD: manejar diferentes formatos
-                let cod = '';
-                if (cells[0]) {
-                    // Primero intentar con el valor formateado (f)
-                    if (cells[0].f !== undefined && cells[0].f !== null) {
-                        cod = String(cells[0].f);
-                    } 
-                    // Si no hay f, usar v pero convertir a string inmediatamente
-                    else if (cells[0].v !== undefined && cells[0].v !== null) {
-                        // Para números, usar toFixed para evitar notación científica
-                        if (typeof cells[0].v === 'number') {
-                            cod = cells[0].v.toFixed(0);
-                        } else {
-                            cod = String(cells[0].v);
-                        }
-                    }
-                }
-                
-                const descripcion = cells[1]?.v || '';
-                const tipo = cells[2]?.v || '';
-                const precio = cells[3]?.v || 0;
-                const stock = cells[4]?.v || 0;
-                
-                if (!descripcion) continue;
-                
-                const product = {
-                    COD: cod,
-                    DESCRIPCION: descripcion,
-                    TIPO: tipo,
-                    'PRECIO VTA': parseInt(precio) || 0,
-                    STK: parseInt(stock) || 0
-                };
-                
-                products.push(product);
-            }
-
-            return products;
         }
 
         function populateCategories() {
@@ -557,8 +439,7 @@
                                  product.STK <= 5 ? `Stock bajo: ${product.STK}` : 
                                  `Stock: ${product.STK}`;
                 
-                // Manejar código vacío o indefinido
-                const displayCode = product.COD && product.COD !== '' ? product.COD : 'S/C';
+                const displayCode = product.COD || 'S/C';
                 
                 return `
                     <div class="product-card">
@@ -579,7 +460,7 @@
 
         // Event listeners
         document.addEventListener('DOMContentLoaded', () => {
-            loadDataFromSheet();
+            loadProducts();
             
             document.getElementById('searchInput').addEventListener('input', filterAndDisplay);
             document.getElementById('categoryFilter').addEventListener('change', filterAndDisplay);
