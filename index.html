@@ -431,7 +431,8 @@
                 const cod = String(values[0]).trim();
                 const descripcion = values[1].trim();
                 const tipo = values[2].trim();
-                const precio = parseInt(values[3]) || 0;
+                //const precio = parseInt(values[3]) || 0;
+                const precio = parsePrice(values[3]);
                 const stock = parseInt(values[4]) || 0;
                 
                 if (!descripcion) continue;
@@ -471,6 +472,33 @@
             result.push(current);
             return result;
         }
+
+        function parsePrice(value) {
+            if (value === undefined || value === null) return 0;
+
+            // normalizar a string
+            let s = String(value).trim();
+        
+            if (!s) return 0;
+        
+            // sacar símbolos y espacios (dejamos dígitos, punto, coma y signo)
+            s = s.replace(/[^\d.,-]/g, '');
+
+            // Si tiene coma, asumimos formato AR: "." miles, "," decimales
+            if (s.includes(',')) {
+                s = s.replace(/\./g, '');   // remover separadores de miles
+                s = s.replace(',', '.');    // coma decimal -> punto
+            } else {
+                // Si no tiene coma, puede venir 12.345 (miles) o 12345.67 (decimal)
+                // Regla simple: si hay más de un punto, son miles.
+                const dots = (s.match(/\./g) || []).length;
+                if (dots > 1) s = s.replace(/\./g, '');
+            }
+        
+            const n = Number(s);
+            return Number.isFinite(n) ? n : 0;
+        }
+
 
         function populateCategories() {
             const categories = [...new Set(allProducts.map(p => p.TIPO))].filter(Boolean).sort();
