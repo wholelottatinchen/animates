@@ -141,6 +141,47 @@
             color: #667eea;
         }
 
+        .refresh-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .refresh-button:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .info-section {
+            background: #e7f1ff;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 30px;
+        }
+
+        .info-section h3 {
+            color: #004085;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-section p {
+            color: #004085;
+            line-height: 1.6;
+        }
+
         .products-container {
             padding: 30px;
         }
@@ -265,7 +306,7 @@
     <div class="container">
         <div class="header">
             <h1>🧉 Catálogo de Productos</h1>
-            <p>Precios actualizados</p>
+            <p>Precios actualizados automáticamente desde Google Sheets</p>
         </div>
 
         <div id="loadingSection" class="loading">
@@ -304,12 +345,22 @@
                         <option value="disponible">Con stock</option>
                         <option value="sin-stock">Sin stock</option>
                     </select>
+
+                    <button class="refresh-button" onclick="loadDataFromSheet()">
+                        🔄 Actualizar
+                    </button>
                 </div>
 
                 <div class="stats">
                     <div class="stat">Total de productos: <span id="totalProducts">0</span></div>
                     <div class="stat">Mostrando: <span id="visibleProducts">0</span></div>
+                    <div class="stat">Última actualización: <span id="lastUpdate">-</span></div>
                 </div>
+            </div>
+
+            <div class="info-section">
+                <h3>ℹ️ Actualización automática</h3>
+                <p>Los precios se cargan directamente desde tu Excel en Google Drive. Editá el archivo y hacé clic en "🔄 Actualizar" para ver los cambios.</p>
             </div>
 
             <div class="products-container">
@@ -325,26 +376,31 @@
     <script>
         let allProducts = [];
         let filteredProducts = [];
+        
+        // URL del CSV publicado
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR96NtyOOz-ru7lV2Dyrfrg3kDcEgu0gtSvrZ5yCCsnfS1swVb2qF5rNKkCUnKHbw/pub?gid=380826890&single=true&output=csv';
 
-        async function loadProducts() {
+        async function loadDataFromSheet() {
             try {
                 document.getElementById('loadingSection').style.display = 'block';
                 document.getElementById('mainContent').style.display = 'none';
                 document.getElementById('errorSection').style.display = 'none';
 
-                // Cargar el archivo JSON
-                const response = await fetch('productos.json');
+                const response = await fetch(CSV_URL);
+                const csvText = await response.text();
                 
-                if (!response.ok) {
-                    throw new Error('No se pudo cargar el archivo productos.json');
-                }
+                const products = parseCSV(csvText);
                 
-                allProducts = await response.json();
-                
-                if (allProducts.length === 0) {
-                    throw new Error('No se encontraron productos');
+                if (products.length === 0) {
+                    throw new Error('No se encontraron productos en la hoja de cálculo');
                 }
 
+                allProducts = products;
+                
+                // Actualizar última actualización
+                const now = new Date();
+                document.getElementById('lastUpdate').textContent = now.toLocaleString('es-AR');
+                
                 document.getElementById('loadingSection').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
                 
@@ -356,8 +412,63 @@
                 document.getElementById('loadingSection').style.display = 'none';
                 document.getElementById('errorSection').style.display = 'block';
                 document.getElementById('errorMessage').textContent = 
-                    'No se pudieron cargar los datos: ' + error.message;
+                    'No se pudieron cargar los datos. Error: ' + error.message;
             }
+        }
+
+        function parseCSV(csv) {
+            const lines = csv.split('\n').filter(line => line.trim());
+            const products = [];
+
+            // Saltar la primera línea (encabezados)
+            for (let i = 1; i < lines.length; i++) {
+                const values = parseCSVLine(lines[i]);
+                
+                if (values.length < 5) continue;
+                
+                // Extraer valores - mantener COD como string tal cual viene
+                const cod = String(values[0]).trim();
+                const descripcion = values[1].trim();
+                const tipo = values[2].trim();
+                const precio = parseInt(values[3]) || 0;
+                const stock = parseInt(values[4]) || 0;
+                
+                if (!descripcion) continue;
+                
+                const product = {
+                    COD: cod,
+                    DESCRIPCION: descripcion,
+                    TIPO: tipo,
+                    'PRECIO VTA': precio,
+                    STK: stock
+                };
+                
+                products.push(product);
+            }
+
+            return products;
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current);
+            return result;
         }
 
         function populateCategories() {
@@ -460,7 +571,7 @@
 
         // Event listeners
         document.addEventListener('DOMContentLoaded', () => {
-            loadProducts();
+            loadDataFromSheet();
             
             document.getElementById('searchInput').addEventListener('input', filterAndDisplay);
             document.getElementById('categoryFilter').addEventListener('change', filterAndDisplay);
