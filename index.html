@@ -44,6 +44,32 @@
             font-size: 1.1em;
         }
 
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #667eea;
+        }
+
+        .loading h3 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .controls {
             padding: 30px;
             background: #f8f9fa;
@@ -113,6 +139,26 @@
             border-radius: 8px;
             font-weight: 600;
             color: #667eea;
+        }
+
+        .refresh-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .refresh-button:hover {
+            background: #218838;
+            transform: translateY(-2px);
         }
 
         .products-container {
@@ -207,39 +253,34 @@
             margin-bottom: 10px;
         }
 
-        .update-section {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
+        .info-section {
+            background: #e7f1ff;
+            border: 2px solid #667eea;
             border-radius: 12px;
             padding: 20px;
             margin: 20px 30px;
         }
 
-        .update-section h3 {
-            color: #856404;
+        .info-section h3 {
+            color: #004085;
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .update-section input[type="file"] {
-            margin: 10px 0;
-            padding: 10px;
+        .info-section p {
+            color: #004085;
+            line-height: 1.6;
         }
 
-        .update-section button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 15px;
-            transition: all 0.3s;
-        }
-
-        .update-section button:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
+        .error-message {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 30px;
+            color: #721c24;
         }
 
         @media (max-width: 768px) {
@@ -265,81 +306,165 @@
     <div class="container">
         <div class="header">
             <h1>🧉 Catálogo de Productos</h1>
-            <p>Busca y consulta nuestros precios actualizados</p>
+            <p>Precios actualizados automáticamente desde Google Sheets</p>
         </div>
 
-        <div class="controls">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="🔍 Buscar por código o descripción...">
-            </div>
-            
-            <div class="filters">
-                <label for="categoryFilter">Categoría:</label>
-                <select id="categoryFilter">
-                    <option value="">Todas las categorías</option>
-                </select>
-
-                <label for="sortFilter">Ordenar por:</label>
-                <select id="sortFilter">
-                    <option value="nombre">Nombre (A-Z)</option>
-                    <option value="precio-asc">Precio (menor a mayor)</option>
-                    <option value="precio-desc">Precio (mayor a menor)</option>
-                    <option value="codigo">Código</option>
-                </select>
-
-                <label for="stockFilter">Stock:</label>
-                <select id="stockFilter">
-                    <option value="">Todos</option>
-                    <option value="disponible">Con stock</option>
-                    <option value="sin-stock">Sin stock</option>
-                </select>
-            </div>
-
-            <div class="stats">
-                <div class="stat">Total de productos: <span id="totalProducts">0</span></div>
-                <div class="stat">Mostrando: <span id="visibleProducts">0</span></div>
-            </div>
+        <div id="loadingSection" class="loading">
+            <div class="spinner"></div>
+            <h3>Cargando productos...</h3>
         </div>
 
-        <div class="update-section">
-            <h3>📁 Actualizar catálogo</h3>
-            <p>Para actualizar los precios, sube un nuevo archivo Excel con la misma estructura (COD, DESCRIPCION, TIPO, PRECIO VTA, STK)</p>
-            <input type="file" id="excelFile" accept=".xlsx,.xls">
-            <button onclick="updateCatalog()">Actualizar productos</button>
+        <div id="errorSection" class="error-message" style="display: none;">
+            <h3>❌ Error al cargar datos</h3>
+            <p id="errorMessage"></p>
         </div>
 
-        <div class="products-container">
-            <div class="products-grid" id="productsGrid"></div>
-            <div class="no-results" id="noResults" style="display: none;">
-                <h3>😕 No se encontraron productos</h3>
-                <p>Intenta con otros términos de búsqueda o filtros</p>
+        <div id="mainContent" style="display: none;">
+            <div class="controls">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 Buscar por código o descripción...">
+                </div>
+                
+                <div class="filters">
+                    <label for="categoryFilter">Categoría:</label>
+                    <select id="categoryFilter">
+                        <option value="">Todas las categorías</option>
+                    </select>
+
+                    <label for="sortFilter">Ordenar por:</label>
+                    <select id="sortFilter">
+                        <option value="nombre">Nombre (A-Z)</option>
+                        <option value="precio-asc">Precio (menor a mayor)</option>
+                        <option value="precio-desc">Precio (mayor a menor)</option>
+                        <option value="codigo">Código</option>
+                    </select>
+
+                    <label for="stockFilter">Stock:</label>
+                    <select id="stockFilter">
+                        <option value="">Todos</option>
+                        <option value="disponible">Con stock</option>
+                        <option value="sin-stock">Sin stock</option>
+                    </select>
+
+                    <button class="refresh-button" onclick="loadDataFromSheet()">
+                        🔄 Actualizar
+                    </button>
+                </div>
+
+                <div class="stats">
+                    <div class="stat">Total de productos: <span id="totalProducts">0</span></div>
+                    <div class="stat">Mostrando: <span id="visibleProducts">0</span></div>
+                    <div class="stat">Última actualización: <span id="lastUpdate">-</span></div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>ℹ️ Actualización automática</h3>
+                <p>Los precios se cargan directamente desde Google Sheets. Cada vez que modifiques el archivo en Google Drive, haz clic en "🔄 Actualizar" para ver los cambios reflejados.</p>
+            </div>
+
+            <div class="products-container">
+                <div class="products-grid" id="productsGrid"></div>
+                <div class="no-results" id="noResults" style="display: none;">
+                    <h3>😕 No se encontraron productos</h3>
+                    <p>Intenta con otros términos de búsqueda o filtros</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         let allProducts = [];
         let filteredProducts = [];
+        
+        // ID de tu Google Sheet
+        const SHEET_ID = '1aTysjhaifMmc69F97_8tbMEz6Tn3k50E';
+        const SHEET_NAME = 'Hoja1'; // Cambia esto si tu hoja tiene otro nombre
 
-        // Datos iniciales del Excel
-        const initialData = PRODUCTOS_DATA;
+        async function loadDataFromSheet() {
+            try {
+                // Mostrar spinner
+                document.getElementById('loadingSection').style.display = 'block';
+                document.getElementById('mainContent').style.display = 'none';
+                document.getElementById('errorSection').style.display = 'none';
 
-        function init() {
-            allProducts = initialData;
-            populateCategories();
-            filterAndDisplay();
+                // URL de la API de Google Sheets usando formato JSON
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+                
+                const response = await fetch(url);
+                const text = await response.text();
+                
+                // Remover el wrapper de JSONP
+                const jsonText = text.substring(47).slice(0, -2);
+                const data = JSON.parse(jsonText);
+                
+                // Parsear datos de Google Sheets
+                const products = parseGoogleSheetsData(data);
+                
+                if (products.length === 0) {
+                    throw new Error('No se encontraron productos en la hoja de cálculo');
+                }
+
+                allProducts = products;
+                
+                // Actualizar última actualización
+                const now = new Date();
+                document.getElementById('lastUpdate').textContent = now.toLocaleString('es-AR');
+                
+                // Ocultar loading y mostrar contenido
+                document.getElementById('loadingSection').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                
+                populateCategories();
+                filterAndDisplay();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loadingSection').style.display = 'none';
+                document.getElementById('errorSection').style.display = 'block';
+                document.getElementById('errorMessage').textContent = 
+                    'No se pudieron cargar los datos. Asegúrate de que el archivo de Google Sheets sea público. Error: ' + error.message;
+            }
+        }
+
+        function parseGoogleSheetsData(data) {
+            const products = [];
+            const rows = data.table.rows;
             
-            // Event listeners
-            document.getElementById('searchInput').addEventListener('input', filterAndDisplay);
-            document.getElementById('categoryFilter').addEventListener('change', filterAndDisplay);
-            document.getElementById('sortFilter').addEventListener('change', filterAndDisplay);
-            document.getElementById('stockFilter').addEventListener('change', filterAndDisplay);
+            // Saltar la primera fila (encabezados)
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row.c) continue;
+                
+                const cells = row.c;
+                
+                // Extraer valores de cada celda
+                const cod = cells[0]?.v || cells[0]?.f || '';
+                const descripcion = cells[1]?.v || '';
+                const tipo = cells[2]?.v || '';
+                const precio = cells[3]?.v || 0;
+                const stock = cells[4]?.v || 0;
+                
+                if (!descripcion) continue;
+                
+                const product = {
+                    COD: cod,
+                    DESCRIPCION: descripcion,
+                    TIPO: tipo,
+                    'PRECIO VTA': parseInt(precio) || 0,
+                    STK: parseInt(stock) || 0
+                };
+                
+                products.push(product);
+            }
+
+            return products;
         }
 
         function populateCategories() {
             const categories = [...new Set(allProducts.map(p => p.TIPO))].filter(Boolean).sort();
             const select = document.getElementById('categoryFilter');
+            select.innerHTML = '<option value="">Todas las categorías</option>';
             
             categories.forEach(cat => {
                 const option = document.createElement('option');
@@ -432,846 +557,15 @@
             document.getElementById('visibleProducts').textContent = filteredProducts.length;
         }
 
-        function updateCatalog() {
-            const fileInput = document.getElementById('excelFile');
-            const file = fileInput.files[0];
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDataFromSheet();
             
-            if (!file) {
-                alert('Por favor selecciona un archivo Excel');
-                return;
-            }
-            
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-                    
-                    // Validar estructura
-                    if (jsonData.length === 0) {
-                        alert('El archivo Excel está vacío');
-                        return;
-                    }
-                    
-                    const requiredColumns = ['COD', 'DESCRIPCION', 'TIPO', 'PRECIO VTA', 'STK'];
-                    const hasAllColumns = requiredColumns.every(col => col in jsonData[0]);
-                    
-                    if (!hasAllColumns) {
-                        alert('El archivo debe tener las columnas: COD, DESCRIPCION, TIPO, PRECIO VTA, STK');
-                        return;
-                    }
-                    
-                    allProducts = jsonData;
-                    document.getElementById('categoryFilter').innerHTML = '<option value="">Todas las categorías</option>';
-                    populateCategories();
-                    filterAndDisplay();
-                    
-                    alert(`✅ Catálogo actualizado exitosamente con ${allProducts.length} productos`);
-                    fileInput.value = '';
-                    
-                } catch (error) {
-                    alert('Error al leer el archivo: ' + error.message);
-                }
-            };
-            
-            reader.readAsArrayBuffer(file);
-        }
-
-        // Inicializar cuando cargue la página
-        window.addEventListener('DOMContentLoaded', init);
-    </script>
-    
-    <script>
-        // Aquí van los datos del Excel
-        const PRODUCTOS_DATA = [
-  {
-    "COD": 4978,
-    "DESCRIPCION": "BILLETERA C/CIERRE",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 21000,
-    "STK": 1
-  },
-  {
-    "COD": 3139,
-    "DESCRIPCION": "BLISTER LIMPIA BOMBILLAS X 1",
-    "TIPO": "ACCES 1",
-    "PRECIO VTA": 500,
-    "STK": 11
-  },
-  {
-    "COD": 2510,
-    "DESCRIPCION": "BOLSA MULTIUSO VINTAGE",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 5000,
-    "STK": 0
-  },
-  {
-    "COD": "250410_2",
-    "DESCRIPCION": "BOLSAS AMERICANA KRA",
-    "TIPO": "OTROS",
-    "PRECIO VTA": 0,
-    "STK": 1
-  },
-  {
-    "COD": "251107_1",
-    "DESCRIPCION": "BOLSAS PORTA BOMB X 100",
-    "TIPO": "OTROS",
-    "PRECIO VTA": 900,
-    "STK": 1
-  },
-  {
-    "COD": "250410_1",
-    "DESCRIPCION": "BOLSAS SOBRES FANT 8X26",
-    "TIPO": "OTROS",
-    "PRECIO VTA": 0,
-    "STK": 1
-  },
-  {
-    "COD": "72011244",
-    "DESCRIPCION": "BOLSO MATERO CUERO PREMIUM",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 65000,
-    "STK": 1
-  },
-  {
-    "COD": 7090774392311,
-    "DESCRIPCION": "BOLSO MATERO GRACE C/LLAVERO VERDE SKORA",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 45000,
-    "STK": 0
-  },
-  {
-    "COD": 1339,
-    "DESCRIPCION": "BOMBILLA 2 ANILLOS ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 25000,
-    "STK": 0
-  },
-  {
-    "COD": "72001339",
-    "DESCRIPCION": "BOMBILLA 2 ANILLOS ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 25000,
-    "STK": 1
-  },
-  {
-    "COD": "72001341",
-    "DESCRIPCION": "BOMBILLA 2 ANILLOS BRONCE ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 25000,
-    "STK": 1
-  },
-  {
-    "COD": 2841,
-    "DESCRIPCION": "BOMBILLA ACERO PICO DE LORO TAUMER",
-    "TIPO": "BOMB.ACERO",
-    "PRECIO VTA": 17000,
-    "STK": 1
-  },
-  {
-    "COD": "80311CC",
-    "DESCRIPCION": "BOMBILLA APLIQUE CORTA ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 20000,
-    "STK": 0
-  },
-  {
-    "COD": "2917",
-    "DESCRIPCION": "BOMBILLA CHATA CORTA ACERO",
-    "TIPO": "BOMB.ACERO",
-    "PRECIO VTA": 3000,
-    "STK": 2
-  },
-  {
-    "COD": "6992",
-    "DESCRIPCION": "BOMBILLA CHATA CURVA ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 22000,
-    "STK": 2
-  },
-  {
-    "COD": "2921",
-    "DESCRIPCION": "BOMBILLA CHATA MEDIANA ACERO",
-    "TIPO": "BOMB.ACERO",
-    "PRECIO VTA": 5000,
-    "STK": 2
-  },
-  {
-    "COD": 1343,
-    "DESCRIPCION": "BOMBILLA CINCELADA ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 27000,
-    "STK": 1
-  },
-  {
-    "COD": 1344,
-    "DESCRIPCION": "BOMBILLA CINCELADA COCO REDONDO ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 19000,
-    "STK": 0
-  },
-  {
-    "COD": 1342,
-    "DESCRIPCION": "BOMBILLA CINCELADA VIROLA ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 25000,
-    "STK": 0
-  },
-  {
-    "COD": "8031CRM",
-    "DESCRIPCION": "BOMBILLA COCO REDONDO MINI ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 19000,
-    "STK": 0
-  },
-  {
-    "COD": "1431PM",
-    "DESCRIPCION": "BOMBILLA MINI PICO DORADO ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 23000,
-    "STK": 0
-  },
-  {
-    "COD": "2685",
-    "DESCRIPCION": "BOMBILLA PICO DORADO PALETA ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 23000,
-    "STK": 0
-  },
-  {
-    "COD": "BO21",
-    "DESCRIPCION": "BOMBILLA PICO LORO COCO ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 27000,
-    "STK": 0
-  },
-  {
-    "COD": "BO237MN",
-    "DESCRIPCION": "BOMBILLA PICO LORO MINI LISA COCO ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 24000,
-    "STK": 0
-  },
-  {
-    "COD": "2909",
-    "DESCRIPCION": "BOMBILLA PICO LORO SILVER ACERO",
-    "TIPO": "BOMB.ACERO",
-    "PRECIO VTA": 8000,
-    "STK": 1
-  },
-  {
-    "COD": "1340B",
-    "DESCRIPCION": "BOMBILLON 2 ANILLOS ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 31000,
-    "STK": 0
-  },
-  {
-    "COD": 1338,
-    "DESCRIPCION": "BOMBILLON 2 VIROLAS ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 38000,
-    "STK": 1
-  },
-  {
-    "COD": "Bo2103",
-    "DESCRIPCION": "BOMBILLON MINI C/FLEJE ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 41000,
-    "STK": 1
-  },
-  {
-    "COD": "MA22995",
-    "DESCRIPCION": "BOMBILLON MINI PICO DORADO IB",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 32000,
-    "STK": 0
-  },
-  {
-    "COD": "SBORDPvhg",
-    "DESCRIPCION": "BOMBILLON PICO DEL REY DORADO GALLONADO ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 27000,
-    "STK": 0
-  },
-  {
-    "COD": "SBORDPvhgb",
-    "DESCRIPCION": "BOMBILLON PICO DEL REY GALLONADO ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 27000,
-    "STK": 0
-  },
-  {
-    "COD": "2755",
-    "DESCRIPCION": "BOMBILLON PICO LORO LISO ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 35000,
-    "STK": 1
-  },
-  {
-    "COD": "BO259",
-    "DESCRIPCION": "BOMBILLON PICO LORO TORNEADO VIROLA ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 41000,
-    "STK": 0
-  },
-  {
-    "COD": 2913,
-    "DESCRIPCION": "BOMBILLON PICO REY DORADO ALPACA",
-    "TIPO": "BOMB.ALPACA",
-    "PRECIO VTA": 35000,
-    "STK": 0
-  },
-  {
-    "COD": 621,
-    "DESCRIPCION": "CANASTA CUERO PREMIUM NEGRO AP",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 49000,
-    "STK": 0
-  },
-  {
-    "COD": 1843,
-    "DESCRIPCION": "CANASTA CUERO PREMIUM NEGRO EP",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 41000,
-    "STK": 0
-  },
-  {
-    "COD": "5122C",
-    "DESCRIPCION": "LATA TAMBOR GRAB MATE CHICA",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 4000,
-    "STK": 2
-  },
-  {
-    "COD": "5122M",
-    "DESCRIPCION": "LATA TAMBOR GRAB MATE MEDIUM",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 5000,
-    "STK": 1
-  },
-  {
-    "COD": "LUZ MA",
-    "DESCRIPCION": "LUZ MATERA",
-    "TIPO": "ACCES 2",
-    "PRECIO VTA": 8000,
-    "STK": 0
-  },
-  {
-    "COD": 2766,
-    "DESCRIPCION": "MACETA BUDA ROSA",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 7000,
-    "STK": 0
-  },
-  {
-    "COD": "BMAISTAR",
-    "DESCRIPCION": "MATE ACERO PACK STAR WARS",
-    "TIPO": "MATE STD",
-    "PRECIO VTA": 19000,
-    "STK": 0
-  },
-  {
-    "COD": 2035,
-    "DESCRIPCION": "MATE BARRILITO ALGARR COBRE ",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 17000,
-    "STK": 0
-  },
-  {
-    "COD": 485,
-    "DESCRIPCION": "MATE BARRILITO GUARDA COBRE ALGARR",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 19000,
-    "STK": 0
-  },
-  {
-    "COD": 483,
-    "DESCRIPCION": "MATE BOCA PLANA ACERO ALGARR",
-    "TIPO": "MATE STD",
-    "PRECIO VTA": 19000,
-    "STK": 0
-  },
-  {
-    "COD": 72000483,
-    "DESCRIPCION": "MATE BOCA PLANA ACERO ALGARR",
-    "TIPO": "MATE STD",
-    "PRECIO VTA": 19000,
-    "STK": 0
-  },
-  {
-    "COD": 4872,
-    "DESCRIPCION": "MATE BOCON ALGARR COBRE/PLAT",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 17000,
-    "STK": 0
-  },
-  {
-    "COD": 1891,
-    "DESCRIPCION": "MATE CAMION CINCELADO ALPACA CALAB NEGRO CH",
-    "TIPO": "MATE PREM",
-    "PRECIO VTA": 27000,
-    "STK": 0
-  },
-  {
-    "COD": 72002426,
-    "DESCRIPCION": "MATE CAMION LISO ACERO CALAB",
-    "TIPO": "MATE PREM 2",
-    "PRECIO VTA": 38000,
-    "STK": 0
-  },
-  {
-    "COD": 2178,
-    "DESCRIPCION": "MATE CAMION LISO ACERO CALAB BORDO CH",
-    "TIPO": "MATE PREM 2",
-    "PRECIO VTA": 25000,
-    "STK": 1
-  },
-  {
-    "COD": 2070,
-    "DESCRIPCION": "MATE CAMION LISO ACERO CALAB NEGRO CH",
-    "TIPO": "MATE PREM 2",
-    "PRECIO VTA": 27000,
-    "STK": 0
-  },
-  {
-    "COD": 72002070,
-    "DESCRIPCION": "MATE CAMION LISO ACERO CALAB NEGRO CH",
-    "TIPO": "MATE PREM 2",
-    "PRECIO VTA": 27000,
-    "STK": 0
-  },
-  {
-    "COD": 72004206,
-    "DESCRIPCION": "MATE CAMION LISO ALUMINIO ALGARR",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 27000,
-    "STK": 1
-  },
-  {
-    "COD": 72002216,
-    "DESCRIPCION": "MATE CAMION LISO ALUMINIO CALABAZA",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 27000,
-    "STK": 1
-  },
-  {
-    "COD": 72001961,
-    "DESCRIPCION": "MATE CAMION LISO ALUMINIO CALABAZA EP",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 27000,
-    "STK": 0
-  },
-  {
-    "COD": "4206C",
-    "DESCRIPCION": "MATE CAMIONERO ALGARR ALUM CHOCO",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 27000,
-    "STK": 0
-  },
-  {
-    "COD": "4206L",
-    "DESCRIPCION": "MATE CAMIONERO ALGARR ALUM LISO",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 27000,
-    "STK": 0
-  },
-  {
-    "COD": "4206N",
-    "DESCRIPCION": "MATE CAMIONERO ALGARR ALUM NEGRO",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 27000,
-    "STK": 0
-  },
-  {
-    "COD": 2135,
-    "DESCRIPCION": "MATE CARPINCHO LISO ALUM ALGARR",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 27000,
-    "STK": 1
-  },
-  {
-    "COD": 2439,
-    "DESCRIPCION": "MATE EBANO VIROLA Y BASE ALPACA ALGARR",
-    "TIPO": "MATE PREM 2",
-    "PRECIO VTA": 36000,
-    "STK": 0
-  },
-  {
-    "COD": "72011328",
-    "DESCRIPCION": "MATE HORNERO LISO ACERO ALGARR",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 25000,
-    "STK": 0
-  },
-  {
-    "COD": 2990,
-    "DESCRIPCION": "MATE IMPERIAL ANIMAL PRINT ALPACA CALAB NG",
-    "TIPO": "MATE PREM 3",
-    "PRECIO VTA": 53000,
-    "STK": 1
-  },
-  {
-    "COD": 72011121,
-    "DESCRIPCION": "MATE IMPERIAL BASE LISO ALPACA CALAB FV",
-    "TIPO": "MATE PREM 3",
-    "PRECIO VTA": 48000,
-    "STK": 0
-  },
-  {
-    "COD": "72011278",
-    "DESCRIPCION": "MATE IMPERIAL CERAMICA COLORES",
-    "TIPO": "MATE STD",
-    "PRECIO VTA": 16000,
-    "STK": 1
-  },
-  {
-    "COD": 2281,
-    "DESCRIPCION": "MATE IMPERIAL LISO ACERO ALGARR EP MARRON",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 32000,
-    "STK": 0
-  },
-  {
-    "COD": "72002032",
-    "DESCRIPCION": "MATE IMPERIAL LISO ACERO CALAB BORDO CH",
-    "TIPO": "MATE PREM 3",
-    "PRECIO VTA": 35000,
-    "STK": 1
-  },
-  {
-    "COD": 1895,
-    "DESCRIPCION": "MATE IMPERIAL LISO ACERO CALAB NEGRO EP",
-    "TIPO": "MATE PREM",
-    "PRECIO VTA": 32000,
-    "STK": 0
-  },
-  {
-    "COD": 72001895,
-    "DESCRIPCION": "MATE IMPERIAL LISO ACERO CALAB NEGRO EP",
-    "TIPO": "MATE PREM",
-    "PRECIO VTA": 35000,
-    "STK": 2
-  },
-  {
-    "COD": "2212",
-    "DESCRIPCION": "MATE IMPERIAL LISO ACERO CALAB SUELA EP",
-    "TIPO": "MATE PREM 2",
-    "PRECIO VTA": 35000,
-    "STK": 1
-  },
-  {
-    "COD": 1896,
-    "DESCRIPCION": "MATE IMPERIAL LISO ACERO CALABAZA BORDO EP",
-    "TIPO": "MATE PREM",
-    "PRECIO VTA": 32000,
-    "STK": 0
-  },
-  {
-    "COD": 72001896,
-    "DESCRIPCION": "MATE IMPERIAL LISO ACERO CALABAZA BORDO EP",
-    "TIPO": "MATE PREM",
-    "PRECIO VTA": 32000,
-    "STK": 0
-  },
-  {
-    "COD": 1897,
-    "DESCRIPCION": "MATE IMPERIAL LISO ACERO CALABAZA MARRON EP",
-    "TIPO": "MATE PREM",
-    "PRECIO VTA": 32000,
-    "STK": 0
-  },
-  {
-    "COD": 72001897,
-    "DESCRIPCION": "MATE IMPERIAL LISO ACERO CALABAZA MARRON EP",
-    "TIPO": "MATE PREM",
-    "PRECIO VTA": 32000,
-    "STK": 0
-  },
-  {
-    "COD": "72004003",
-    "DESCRIPCION": "MATE IMPERIAL LISO ALPACA CALAB BORDO EP",
-    "TIPO": "MATE PREM 2",
-    "PRECIO VTA": 35000,
-    "STK": 1
-  },
-  {
-    "COD": 4001,
-    "DESCRIPCION": "MATE IMPERIAL LISO ALPACA CALAB NEGRO EP",
-    "TIPO": "MATE PREM 2",
-    "PRECIO VTA": 35000,
-    "STK": 0
-  },
-  {
-    "COD": "72004001",
-    "DESCRIPCION": "MATE IMPERIAL LISO ALPACA CALAB NEGRO EP",
-    "TIPO": "MATE PREM 2",
-    "PRECIO VTA": 35000,
-    "STK": 1
-  },
-  {
-    "COD": "72011162",
-    "DESCRIPCION": "MATE IMPERIAL LISO ALPACA CUERO TALLADO CALAB",
-    "TIPO": "MATE PREM 2",
-    "PRECIO VTA": 42000,
-    "STK": 1
-  },
-  {
-    "COD": 72001837,
-    "DESCRIPCION": "MATE JUJEÑO LISO ACERO LAPACHO LC",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 23000,
-    "STK": 1
-  },
-  {
-    "COD": 2344,
-    "DESCRIPCION": "MATE JUJEÑO LISO ACERO PREMIUM NG ALGARR",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 17000,
-    "STK": 0
-  },
-  {
-    "COD": 72011057,
-    "DESCRIPCION": "MATE LAPACHO SIN VIROLA",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 17000,
-    "STK": 0
-  },
-  {
-    "COD": "7798339400051",
-    "DESCRIPCION": "MATE MIJO NEGRO CALDEN",
-    "TIPO": "MATE STD",
-    "PRECIO VTA": 23000,
-    "STK": 1
-  },
-  {
-    "COD": 1916,
-    "DESCRIPCION": "MATE OVAL ACERO TERMICO BORDO",
-    "TIPO": "MATE STD",
-    "PRECIO VTA": 9000,
-    "STK": 1
-  },
-  {
-    "COD": 4974,
-    "DESCRIPCION": "MATE OVAL ACERO TERMICO NEGRO",
-    "TIPO": "MATE STD",
-    "PRECIO VTA": 9000,
-    "STK": 0
-  },
-  {
-    "COD": "72011048",
-    "DESCRIPCION": "MATE OVAL BOCA PLANA ACERO NEGRO",
-    "TIPO": "MATE STD",
-    "PRECIO VTA": 16000,
-    "STK": 1
-  },
-  {
-    "COD": 4869,
-    "DESCRIPCION": "MATE PERITA C/GUARDA COBRE ALGARR",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 19000,
-    "STK": 0
-  },
-  {
-    "COD": "72000479",
-    "DESCRIPCION": "MATE PERITA LISO ACERO",
-    "TIPO": "MATE STD",
-    "PRECIO VTA": 15000,
-    "STK": 1
-  },
-  {
-    "COD": 547,
-    "DESCRIPCION": "MATE PERITA LISO ACERO ALGARR",
-    "TIPO": "MATE STD",
-    "PRECIO VTA": 10000,
-    "STK": 0
-  },
-  {
-    "COD": 72002993,
-    "DESCRIPCION": "MATE PERITA MINI LISO COBRE ALGARR",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 19000,
-    "STK": 1
-  },
-  {
-    "COD": 2961,
-    "DESCRIPCION": "MATE RANCHERO PINTADO CC",
-    "TIPO": "MATE PREM 2",
-    "PRECIO VTA": 45000,
-    "STK": 1
-  },
-  {
-    "COD": 2347,
-    "DESCRIPCION": "MATE ROMA LISO ALPACA CALABAZA",
-    "TIPO": "MATE PREM 3",
-    "PRECIO VTA": 49000,
-    "STK": 1
-  },
-  {
-    "COD": 72002943,
-    "DESCRIPCION": "MATE SALTEÑO ALPACA ALGARR",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 14000,
-    "STK": 2
-  },
-  {
-    "COD": 3101,
-    "DESCRIPCION": "MATE TERMICO RECTO ACERO",
-    "TIPO": "MATE STD",
-    "PRECIO VTA": 9000,
-    "STK": 0
-  },
-  {
-    "COD": 3104,
-    "DESCRIPCION": "MATE TERMICO RECTO ACERO BORDO AB",
-    "TIPO": "MATE STD",
-    "PRECIO VTA": 9000,
-    "STK": 0
-  },
-  {
-    "COD": 72002966,
-    "DESCRIPCION": "MATE TORPEDO LISO ACERO LAPACHO",
-    "TIPO": "MATE MED",
-    "PRECIO VTA": 27000,
-    "STK": 1
-  },
-  {
-    "COD": 2362,
-    "DESCRIPCION": "MATE TORPEDO LISO ALPACA CALAB CT",
-    "TIPO": "MATE PREM 2",
-    "PRECIO VTA": 42000,
-    "STK": 1
-  },
-  {
-    "COD": 2511,
-    "DESCRIPCION": "MATERA VINTAGE",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 8000,
-    "STK": 0
-  },
-  {
-    "COD": 1423,
-    "DESCRIPCION": "NECESER TALI",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 8000,
-    "STK": 0
-  },
-  {
-    "COD": 5122,
-    "DESCRIPCION": "PAR DE LATAS TAMBOR GRAB MATE",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 7000,
-    "STK": 0
-  },
-  {
-    "COD": "72004348",
-    "DESCRIPCION": "PAR DE LATAS TAMBOR MARWAL VERDE",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 10000,
-    "STK": 1
-  },
-  {
-    "COD": "7053",
-    "DESCRIPCION": "PAR DE LATAS TAMBOR MATE NARANJA FRANJA",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 10000,
-    "STK": 1
-  },
-  {
-    "COD": "9000M",
-    "DESCRIPCION": "PORTA MATE CUERO VAQUETA PREMIUM AP",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 22000,
-    "STK": 1
-  },
-  {
-    "COD": 101,
-    "DESCRIPCION": "SET DE ASADO MIJO",
-    "TIPO": "OTROS",
-    "PRECIO VTA": 0,
-    "STK": 0
-  },
-  {
-    "COD": 102,
-    "DESCRIPCION": "SET PICADA MIJO",
-    "TIPO": "OTROS",
-    "PRECIO VTA": 0,
-    "STK": 0
-  },
-  {
-    "COD": 779077,
-    "DESCRIPCION": "SET PORTA YERBA NEGRO WANDERLUST",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 14000,
-    "STK": 0
-  },
-  {
-    "COD": 2432,
-    "DESCRIPCION": "YERBERA 500GR FLEX BORDO",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 10000,
-    "STK": 1
-  },
-  {
-    "COD": 1013,
-    "DESCRIPCION": "YERBERA AZUCARERA AZUL FLEX",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 17000,
-    "STK": 0
-  },
-  {
-    "COD": 1058,
-    "DESCRIPCION": "YERBERA AZUCARERA CUERO - CHAU LATA",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 17000,
-    "STK": 2
-  },
-  {
-    "COD": 72011013,
-    "DESCRIPCION": "YERBERA AZUCARERA CUERO - CHAU LATA ANIMAL PRINT",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 26000,
-    "STK": 1
-  },
-  {
-    "COD": 72001013,
-    "DESCRIPCION": "YERBERA AZUCARERA FLEX AZUL",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 14000,
-    "STK": 0
-  },
-  {
-    "COD": 72001026,
-    "DESCRIPCION": "YERBERA AZUCARERA FLEX NEGRO",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 14000,
-    "STK": 1
-  },
-  {
-    "COD": "78018050",
-    "DESCRIPCION": "PAR DE LATAS TAMBOR SIMIL MADERA",
-    "TIPO": "ACCESORIOS",
-    "PRECIO VTA": 10000,
-    "STK": 1
-  },
-  {
-    "COD": "2476",
-    "DESCRIPCION": "MATE IMPERIAL CROCO CINCELADO ALP/CALAB",
-    "TIPO": "MATE PREM 2",
-    "PRECIO VTA": 43000,
-    "STK": 1
-  },
-  {
-    "COD": "72002435",
-    "DESCRIPCION": "MATE IMPERIAL LISO ACERO ALGARR",
-    "TIPO": "MATE PREM 2",
-    "PRECIO VTA": 25000,
-    "STK": 1
-  }
-];
+            document.getElementById('searchInput').addEventListener('input', filterAndDisplay);
+            document.getElementById('categoryFilter').addEventListener('change', filterAndDisplay);
+            document.getElementById('sortFilter').addEventListener('change', filterAndDisplay);
+            document.getElementById('stockFilter').addEventListener('change', filterAndDisplay);
+        });
     </script>
 </body>
 </html>
