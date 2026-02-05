@@ -439,13 +439,21 @@
                 const cells = row.c;
                 
                 // Extraer valores de cada celda
-                // Para COD: usar primero f (formatted value) que preserva el formato original
+                // Para COD: manejar diferentes formatos
                 let cod = '';
                 if (cells[0]) {
-                    cod = cells[0].f || cells[0].v || '';
-                    // Si es un número muy grande, convertirlo a string
-                    if (typeof cod === 'number') {
-                        cod = cod.toString();
+                    // Primero intentar con el valor formateado (f)
+                    if (cells[0].f !== undefined && cells[0].f !== null) {
+                        cod = String(cells[0].f);
+                    } 
+                    // Si no hay f, usar v pero convertir a string inmediatamente
+                    else if (cells[0].v !== undefined && cells[0].v !== null) {
+                        // Para números, usar toFixed para evitar notación científica
+                        if (typeof cells[0].v === 'number') {
+                            cod = cells[0].v.toFixed(0);
+                        } else {
+                            cod = String(cells[0].v);
+                        }
                     }
                 }
                 
