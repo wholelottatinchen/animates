@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo de Productos - Animates</title>
+    <title>AniMates - Catálogo de Productos</title>
     <style>
         * {
             margin: 0;
@@ -425,25 +424,31 @@
             for (let i = 1; i < lines.length; i++) {
                 const values = parseCSVLine(lines[i]);
                 
+                // Ahora esperamos 6 columnas: COD, DESCRIPCION, TIPO, PRECIOVTA, STK, Mostrar
                 if (values.length < 5) continue;
                 
-                // Extraer valores - mantener COD como string tal cual viene
+                // Extraer valores
                 const cod = String(values[0]).trim();
                 const descripcion = values[1].trim();
                 const tipo = values[2].trim();
-                //const precio = parseInt(values[3]) || 0;
-                //const precio = parsePrice(values[3]);
                 const precio = parseInt(String(values[3]).replace(/[^\d-]/g, ''), 10) || 0;
                 const stock = parseInt(values[4]) || 0;
                 
-                if (!descripcion) continue;
+                // Nueva columna: Mostrar (índice 5)
+                // Acepta 1, "1", true, "true" como verdadero
+                const mostrarValue = values[5] ? String(values[5]).trim().toLowerCase() : '0';
+                const mostrar = mostrarValue === '1' || mostrarValue === 'true';
+                
+                // Solo agregar productos que tengan Mostrar = 1
+                if (!descripcion || !mostrar) continue;
                 
                 const product = {
                     COD: cod,
                     DESCRIPCION: descripcion,
                     TIPO: tipo,
                     PRECIOVTA: precio,
-                    STK: stock
+                    STK: stock,
+                    MOSTRAR: mostrar
                 };
                 
                 products.push(product);
@@ -611,3 +616,26 @@
     </script>
 </body>
 </html>
+```
+
+## 📋 Cambios realizados:
+
+**1. En la función `parseCSV()` (línea ~230-265):**
+   - Ahora lee la sexta columna `values[5]` como "Mostrar"
+   - Convierte el valor a booleano (acepta "1", 1, "true" como verdadero)
+   - **Filtrado automático**: Solo agrega productos donde `Mostrar = 1`
+   - Guarda la propiedad `MOSTRAR` en el objeto del producto
+
+## 🔧 Cómo usar en tu Excel:
+
+1. **Agrega una columna "Mostrar"** como sexta columna (después de STK)
+2. **Pon `1`** en las filas que quieras mostrar
+3. **Pon `0`** (o déjala vacía) en las que quieras ocultar
+4. **Actualiza** haciendo clic en el botón "🔄 Actualizar" de la web
+
+**Ejemplo de tu Excel:**
+```
+COD | DESCRIPCION | TIPO | PRECIOVTA | STK | Mostrar
+001 | Mate Imperial | Mates | 15000 | 10 | 1
+002 | Mate de Vidrio | Mates | 12000 | 5 | 0
+003 | Bombilla Alpaca | Bombillas | 8000 | 20 | 1
