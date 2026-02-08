@@ -447,18 +447,18 @@
             const products = [];
 
             // Saltar la primera línea (encabezados)
-            // Ahora esperamos 8 columnas: COD, DESCRIPCION, TIPO, PRECIOVTA, STK, MOSTRAR, HASFOTO, GDRIVE_ORIG, GDRIVE_SHARED
+            // Esperamos 9 columnas: COD, DESCRIPCION, TIPO, PRECIOVTA, STK, MOSTRAR, HASFOTO, GDRIVE_ORIG, GDRIVE_SHARED
             for (let i = 1; i < lines.length; i++) {
                 const values = parseCSVLine(lines[i]);
                 
                 if (values.length < 5) continue;
                 
-                // Extraer valores básicos
-                const cod = String(values[0]).trim();
-                const descripcion = values[1].trim();
-                const tipo = values[2].trim();
-                const precio = parseInt(String(values[3]).replace(/[^\d-]/g, ''), 10) || 0;
-                const stock = parseInt(values[4]) || 0;
+                // Extraer valores básicos (columnas 0-4)
+                const cod = String(values[0] || '').trim();
+                const descripcion = String(values[1] || '').trim();
+                const tipo = String(values[2] || '').trim();
+                const precio = parseInt(String(values[3] || '0').replace(/[^\d-]/g, ''), 10) || 0;
+                const stock = parseInt(values[4] || '0') || 0;
                 
                 // Columna MOSTRAR (índice 5)
                 const mostrarValue = values[5] ? String(values[5]).trim().toLowerCase() : '0';
@@ -468,10 +468,10 @@
                 const hasFotoValue = values[6] ? String(values[6]).trim().toLowerCase() : '0';
                 const hasFoto = hasFotoValue === '1' || hasFotoValue === 'true';
                 
-                // Columna GDRIVE_ORIG (índice 7) - opcional, por si la necesitas
+                // Columna GDRIVE_ORIG (índice 7)
                 const gdriveOrig = values[7] ? String(values[7]).trim() : '';
                 
-                // Columna GDRIVE_SHARED (índice 8) - el link ya transformado
+                // Columna GDRIVE_SHARED (índice 8)
                 const gdriveShared = values[8] ? String(values[8]).trim() : '';
                 
                 // Solo agregar productos que tengan MOSTRAR = 1
@@ -505,7 +505,7 @@
                 
                 if (char === '"') {
                     inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
+                } else if (char === '\t' && !inQuotes) {
                     result.push(current);
                     current = '';
                 } else {
