@@ -419,58 +419,28 @@
         function parseCSV(csv) {
             const lines = csv.split('\n').filter(line => line.trim());
             const products = [];
-        
-            console.log('Total de líneas:', lines.length);
-            console.log('Primera línea (encabezados):', lines[0]);
-            
+
             // Saltar la primera línea (encabezados)
             for (let i = 1; i < lines.length; i++) {
                 const values = parseCSVLine(lines[i]);
                 
-                // Debug: ver qué hay en la primera fila de datos
-                if (i === 1) {
-                    console.log('Primera fila de datos:', values);
-                    console.log('Cantidad de columnas:', values.length);
-                }
+                // Ahora esperamos 6 columnas: COD, DESCRIPCION, TIPO, PRECIOVTA, STK, Mostrar
+                if (values.length < 5) continue;
                 
-                if (values.length < 5) {
-                    console.log(`Fila ${i} ignorada: solo tiene ${values.length} columnas`);
-                    continue;
-                }
-                
-                // Extraer valores básicos
+                // Extraer valores
                 const cod = String(values[0]).trim();
                 const descripcion = values[1].trim();
                 const tipo = values[2].trim();
                 const precio = parseInt(String(values[3]).replace(/[^\d-]/g, ''), 10) || 0;
                 const stock = parseInt(values[4]) || 0;
                 
-                // Columna MOSTRAR (índice 5)
+                // Nueva columna: Mostrar (índice 5)
+                // Acepta 1, "1", true, "true" como verdadero
                 const mostrarValue = values[5] ? String(values[5]).trim().toLowerCase() : '0';
                 const mostrar = mostrarValue === '1' || mostrarValue === 'true';
                 
-                console.log(`Fila ${i}: descripcion="${descripcion}", mostrar="${mostrarValue}" (${mostrar})`);
-                
-                // Columna HASFOTO (índice 6)
-                const hasFotoValue = values[6] ? String(values[6]).trim().toLowerCase() : '0';
-                const hasFoto = hasFotoValue === '1' || hasFotoValue === 'true';
-                
-                // Columna GDRIVE_ORIG (índice 7)
-                const gdriveOrig = values[7] ? String(values[7]).trim() : '';
-                
-                // Columna GDRIVE_SHARED (índice 8)
-                const gdriveShared = values[8] ? String(values[8]).trim() : '';
-                
-                // Solo agregar productos que tengan MOSTRAR = 1
-                if (!descripcion) {
-                    console.log(`Fila ${i} sin descripción, ignorada`);
-                    continue;
-                }
-                
-                if (!mostrar) {
-                    console.log(`Fila ${i} con MOSTRAR=0, ignorada`);
-                    continue;
-                }
+                // Solo agregar productos que tengan Mostrar = 1
+                if (!descripcion || !mostrar) continue;
                 
                 const product = {
                     COD: cod,
@@ -478,18 +448,15 @@
                     TIPO: tipo,
                     PRECIOVTA: precio,
                     STK: stock,
-                    MOSTRAR: mostrar,
-                    HASFOTO: hasFoto,
-                    GDRIVE_ORIG: gdriveOrig,
-                    GDRIVE_SHARED: gdriveShared
+                    MOSTRAR: mostrar
                 };
                 
                 products.push(product);
             }
-        
-            console.log('Productos encontrados:', products.length);
+
             return products;
         }
+
         function parseCSVLine(line) {
             const result = [];
             let current = '';
@@ -649,3 +616,26 @@
     </script>
 </body>
 </html>
+```
+
+## 📋 Cambios realizados:
+
+**1. En la función `parseCSV()` (línea ~230-265):**
+   - Ahora lee la sexta columna `values[5]` como "Mostrar"
+   - Convierte el valor a booleano (acepta "1", 1, "true" como verdadero)
+   - **Filtrado automático**: Solo agrega productos donde `Mostrar = 1`
+   - Guarda la propiedad `MOSTRAR` en el objeto del producto
+
+## 🔧 Cómo usar en tu Excel:
+
+1. **Agrega una columna "Mostrar"** como sexta columna (después de STK)
+2. **Pon `1`** en las filas que quieras mostrar
+3. **Pon `0`** (o déjala vacía) en las que quieras ocultar
+4. **Actualiza** haciendo clic en el botón "🔄 Actualizar" de la web
+
+**Ejemplo de tu Excel:**
+```
+COD | DESCRIPCION | TIPO | PRECIOVTA | STK | Mostrar
+001 | Mate Imperial | Mates | 15000 | 10 | 1
+002 | Mate de Vidrio | Mates | 12000 | 5 | 0
+003 | Bombilla Alpaca | Bombillas | 8000 | 20 | 1
