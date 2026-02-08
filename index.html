@@ -196,7 +196,7 @@
             background: white;
             border: 2px solid #e9ecef;
             border-radius: 12px;
-            padding: 20px;
+            overflow: hidden;
             transition: all 0.3s;
             cursor: pointer;
         }
@@ -205,6 +205,32 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             border-color: #667eea;
+        }
+
+        .product-image-container {
+            width: 100%;
+            height: 250px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .no-image-placeholder {
+            color: #dee2e6;
+            font-size: 4em;
+        }
+
+        .product-info {
+            padding: 20px;
         }
 
         .product-code {
@@ -421,25 +447,34 @@
             const products = [];
 
             // Saltar la primera línea (encabezados)
+            // Ahora esperamos 8 columnas: COD, DESCRIPCION, TIPO, PRECIOVTA, STK, MOSTRAR, HASFOTO, GDRIVE_ORIG, GDRIVE_SHARED
             for (let i = 1; i < lines.length; i++) {
                 const values = parseCSVLine(lines[i]);
                 
-                // Ahora esperamos 6 columnas: COD, DESCRIPCION, TIPO, PRECIOVTA, STK, Mostrar
                 if (values.length < 5) continue;
                 
-                // Extraer valores
+                // Extraer valores básicos
                 const cod = String(values[0]).trim();
                 const descripcion = values[1].trim();
                 const tipo = values[2].trim();
                 const precio = parseInt(String(values[3]).replace(/[^\d-]/g, ''), 10) || 0;
                 const stock = parseInt(values[4]) || 0;
                 
-                // Nueva columna: Mostrar (índice 5)
-                // Acepta 1, "1", true, "true" como verdadero
+                // Columna MOSTRAR (índice 5)
                 const mostrarValue = values[5] ? String(values[5]).trim().toLowerCase() : '0';
                 const mostrar = mostrarValue === '1' || mostrarValue === 'true';
                 
-                // Solo agregar productos que tengan Mostrar = 1
+                // Columna HASFOTO (índice 6)
+                const hasFotoValue = values[6] ? String(values[6]).trim().toLowerCase() : '0';
+                const hasFoto = hasFotoValue === '1' || hasFotoValue === 'true';
+                
+                // Columna GDRIVE_ORIG (índice 7) - opcional, por si la necesitas
+                const gdriveOrig = values[7] ? String(values[7]).trim() : '';
+                
+                // Columna GDRIVE_SHARED (índice 8) - el link ya transformado
+                const gdriveShared = values[8] ? String(values[8]).trim() : '';
+                
+                // Solo agregar productos que tengan MOSTRAR = 1
                 if (!descripcion || !mostrar) continue;
                 
                 const product = {
@@ -448,7 +483,10 @@
                     TIPO: tipo,
                     PRECIOVTA: precio,
                     STK: stock,
-                    MOSTRAR: mostrar
+                    MOSTRAR: mostrar,
+                    HASFOTO: hasFoto,
+                    GDRIVE_ORIG: gdriveOrig,
+                    GDRIVE_SHARED: gdriveShared
                 };
                 
                 products.push(product);
@@ -478,33 +516,6 @@
             result.push(current);
             return result;
         }
-
-        function parsePrice(value) {
-            if (value === undefined || value === null) return 0;
-
-            // normalizar a string
-            let s = String(value).trim();
-        
-            if (!s) return 0;
-        
-            // sacar símbolos y espacios (dejamos dígitos, punto, coma y signo)
-            s = s.replace(/[^\d.,-]/g, '');
-
-            // Si tiene coma, asumimos formato AR: "." miles, "," decimales
-            if (s.includes(',')) {
-                s = s.replace(/\./g, '');   // remover separadores de miles
-                s = s.replace(',', '.');    // coma decimal -> punto
-            } else {
-                // Si no tiene coma, puede venir 12.345 (miles) o 12345.67 (decimal)
-                // Regla simple: si hay más de un punto, son miles.
-                const dots = (s.match(/\./g) || []).length;
-                if (dots > 1) s = s.replace(/\./g, '');
-            }
-        
-            const n = Number(s);
-            return Number.isFinite(n) ? n : 0;
-        }
-
 
         function populateCategories() {
             const categories = [...new Set(allProducts.map(p => p.TIPO))].filter(Boolean).sort();
@@ -587,13 +598,24 @@
                 
                 const displayCode = product.COD || 'S/C';
                 
+                // Determinar si mostrar imagen o placeholder
+                const showImage = product.HASFOTO && product.GDRIVE_SHARED;
+                const imageHTML = showImage 
+                    ? `<img src="${product.GDRIVE_SHARED}" alt="${product.DESCRIPCION}" class="product-image" onerror="this.parentElement.innerHTML='<div class=\\'no-image-placeholder\\'>📦</div>';">`
+                    : `<div class="no-image-placeholder">📦</div>`;
+                
                 return `
                     <div class="product-card">
-                        <div class="product-code">COD: ${displayCode}</div>
-                        <div class="product-name">${product.DESCRIPCION}</div>
-                        <div class="product-type">${product.TIPO || 'Sin categoría'}</div>
-                        <div class="product-price">$${product['PRECIOVTA'].toLocaleString('es-AR')}</div>
-                        <div class="product-stock ${stockClass}">${stockText}</div>
+                        <div class="product-image-container">
+                            ${imageHTML}
+                        </div>
+                        <div class="product-info">
+                            <div class="product-code">COD: ${displayCode}</div>
+                            <div class="product-name">${product.DESCRIPCION}</div>
+                            <div class="product-type">${product.TIPO || 'Sin categoría'}</div>
+                            <div class="product-price">$${product['PRECIOVTA'].toLocaleString('es-AR')}</div>
+                            <div class="product-stock ${stockClass}">${stockText}</div>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -616,26 +638,3 @@
     </script>
 </body>
 </html>
-```
-
-## 📋 Cambios realizados:
-
-**1. En la función `parseCSV()` (línea ~230-265):**
-   - Ahora lee la sexta columna `values[5]` como "Mostrar"
-   - Convierte el valor a booleano (acepta "1", 1, "true" como verdadero)
-   - **Filtrado automático**: Solo agrega productos donde `Mostrar = 1`
-   - Guarda la propiedad `MOSTRAR` en el objeto del producto
-
-## 🔧 Cómo usar en tu Excel:
-
-1. **Agrega una columna "Mostrar"** como sexta columna (después de STK)
-2. **Pon `1`** en las filas que quieras mostrar
-3. **Pon `0`** (o déjala vacía) en las que quieras ocultar
-4. **Actualiza** haciendo clic en el botón "🔄 Actualizar" de la web
-
-**Ejemplo de tu Excel:**
-```
-COD | DESCRIPCION | TIPO | PRECIOVTA | STK | Mostrar
-001 | Mate Imperial | Mates | 15000 | 10 | 1
-002 | Mate de Vidrio | Mates | 12000 | 5 | 0
-003 | Bombilla Alpaca | Bombillas | 8000 | 20 | 1
